@@ -13,19 +13,22 @@ data = {
     "XMax": [],
     "YMax": [],
 }
-split = 250000
+split = 750000
 labels = [
     "Business card",
     "Collectible card game",
     "Debit card",
     "Penalty card",
-    "Greeting card",
     "Telephone card",
 ]
-labels_r = ["/m/01sdgj", "/m/0216z", "/m/02h5d", "/m/02wvcj0", "/m/03r8dh", "/m/066zr"]
-labels_and_imageed = pd.read_csv(
-    "./V2/data/oidv6-train-annotations-human-imagelabels.csv"
-)[:split]
+labels_r = ["/m/01sdgj", "/m/0216z", "/m/02h5d", "/m/02wvcj0", "/m/066zr"]
+labels_and_imageed_human = pd.read_csv(
+    "./V2/data/test-annotations-human-imagelabels (1).csv"
+)
+labels_and_imageed_machone = pd.read_csv(
+    "./V2/data/test-annotations-machine-imagelabels.csv"
+)  # TODO : Change this to machine
+labels_and_imageed = labels_and_imageed_machone.append(labels_and_imageed_human)
 imageids = []
 
 for labelname, imageid in tqdm(
@@ -33,8 +36,8 @@ for labelname, imageid in tqdm(
 ):
     if labelname in labels_r:
         idx_1 += 1
-    imageids.append(imageid)
-bboxs = pd.read_csv("./V2/data/oidv6-train-annotations-bbox.csv")[:split]
+        imageids.append(imageid)
+bboxs = pd.read_csv("./V2/data/test-annotations-bbox.csv")
 images_and_bbox_and_imgid_ = []
 imgids = []
 for imgid in tqdm(
@@ -54,7 +57,7 @@ images_and_bbox_and_imgid_ = pd.DataFrame(
     images_and_bbox_and_imgid_, columns=["ImageID", "XMin", "YMin", "XMax", "YMax"]
 )
 print(images_and_bbox_and_imgid_)
-image_urls = pd.read_csv("./V2/data/oidv6-train-images-with-labels-with-rotation.csv")[
+image_urls = pd.read_csv("./V2/data/test-images-with-rotation.csv")[
     :25000
 ]
 for imgid in tqdm(
@@ -65,18 +68,21 @@ for imgid in tqdm(
     )
 ):
     if imgid[0] in imgids:
-        # print(imgids)
-        data["ImageID"] = imgid[0]
-        data["OriginalURL"] = imgid[1]
-        data["OriginalLandingURL"] = imgid[2]
-        imgid = images_and_bbox_and_imgid_[
+        imgid_of_iabaid = images_and_bbox_and_imgid_[
             images_and_bbox_and_imgid_["ImageID"] == imgid[0]
-        ].iloc[0]
-        print(imgid)
-        data["XMin"].append(imgid['XMin'])
-        data["YMin"].append(imgid['YMin'])
-        data["XMax"].append(imgid['XMax'])
-        data["YMax"].append(imgid['YMax'])
+        ]
+        for idx_3 in range(len(imgid_of_iabaid)):
+            imgid_of_iabaid_iter = images_and_bbox_and_imgid_[
+                images_and_bbox_and_imgid_["ImageID"] == imgid[0]
+            ].iloc[idx_3]
+            data["ImageID"].append(imgid[0])
+            data["OriginalURL"].append(imgid[1])
+            data["OriginalLandingURL"].append(imgid[2])
+            print(imgid)
+            data["XMin"].append(imgid_of_iabaid_iter["XMin"])
+            data["YMin"].append(imgid_of_iabaid_iter["YMin"])
+            data["XMax"].append(imgid_of_iabaid_iter["XMax"])
+            data["YMax"].append(imgid_of_iabaid_iter["YMax"])
 print(data)
 data = pd.DataFrame(data)
 data.to_csv("./V2/data/Cleaned-Data.csv", index=False)
