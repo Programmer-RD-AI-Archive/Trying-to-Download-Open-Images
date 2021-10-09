@@ -24,7 +24,9 @@ for img_url, xmin, ymin, xmax, ymax, ourl in tqdm(
         new_data["YMin"].append(ymin)
         new_data["XMax"].append(xmax)
         new_data["YMax"].append(ymax)
-    except:
+        new_data['ImageID'].append(img_url)
+    except Exception as e:
         pass
+# print(new_data)
 data = pd.DataFrame(new_data)
 data.to_csv("./V2/Data.csv", index=False)
